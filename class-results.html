@@ -1,0 +1,365 @@
+<title>Higher Web Class Results</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column; paste box, then summary cards, topic bars, pupil grid, problem table, common mistakes */
+:root {
+  --bg: #f6f4f6; --surface: #ffffff; --fg: #241a20; --muted: #6b5d65; --line: #ddd4d9;
+  --accent: #630935; --accent-fg: #ffffff; --accent-soft: #f3e4ec;
+  --good: #1d7a46; --good-soft: #dff1e5; --bad: #b3261e; --bad-soft: #fbe5e3; --none: #efecee;
+  --code-bg: #fbf9fa;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
+  --font-code: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17121a; --surface: #211a21; --fg: #f1eaee; --muted: #b4a6ae; --line: #3b3039;
+  --accent: #e28ab2; --accent-fg: #2a0d1b; --accent-soft: #3a1f2e;
+  --good: #72d49c; --good-soft: #163221; --bad: #ff8d84; --bad-soft: #3b1b1a; --none: #2a222a; --code-bg: #1c161c;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #17121a; --surface: #211a21; --fg: #f1eaee; --muted: #b4a6ae; --line: #3b3039;
+  --accent: #e28ab2; --accent-fg: #2a0d1b; --accent-soft: #3a1f2e;
+  --good: #72d49c; --good-soft: #163221; --bad: #ff8d84; --bad-soft: #3b1b1a; --none: #2a222a; --code-bg: #1c161c;
+  color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.topbar { background: var(--accent); color: var(--accent-fg);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.topbar-inner { max-width: 1240px; margin: 0 auto; padding-block: 14px; }
+.topbar h1 { margin: 0; font-size: 1.35rem; }
+.topbar h1 small { font-weight: 400; opacity: .85; font-size: .9rem; margin-left: 8px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+section > h2 { font-size: 1.15rem; margin: 0 0 10px; }
+.lead { margin: 0 0 12px; color: var(--muted); max-width: 80ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; }
+textarea { font-family: var(--font-code); font-size: .8rem; width: 100%; min-height: 120px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--code-bg); color: var(--fg); resize: vertical; word-break: break-all; }
+textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { font: inherit; font-weight: 700; font-size: .95rem; border-radius: 6px; padding: 8px 15px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+.btn:hover { border-color: var(--accent); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+select { font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+#status { font-size: .92rem; color: var(--muted); }
+.banner { background: var(--accent-soft); color: var(--fg); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 14px; font-size: .95rem; }
+.banner[hidden] { display: none; }
+
+.cards { display: flex; flex-wrap: wrap; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-width: 160px; }
+.card b { display: block; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.card span { font-size: .85rem; color: var(--muted); }
+
+.bars { display: grid; gap: 10px; max-width: 680px; }
+.bar { display: grid; grid-template-columns: 130px minmax(0, 1fr) 70px; gap: 12px; align-items: center; }
+.bar .track { height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--accent); border-radius: 6px; }
+.bar .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: var(--surface); }
+th button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+th button:hover { color: var(--accent); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.wrapc { white-space: normal; min-width: 160px; }
+.grid td.cell { text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; min-width: 38px; padding: 6px 4px; }
+.grid th.cell { text-align: center; min-width: 38px; padding: 6px 4px; }
+.c-full { background: var(--good-soft); color: var(--good); }
+.c-part { background: var(--accent-soft); color: var(--accent); }
+.c-zero { background: var(--bad-soft); color: var(--bad); }
+.c-none { background: var(--none); color: var(--muted); font-weight: 400 !important; }
+.grid td.sticky, .grid th.sticky { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.key { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); margin-top: 8px; }
+.key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.key .k-full::before { background: var(--good-soft); border: 1px solid var(--good); }
+.key .k-part::before { background: var(--accent-soft); border: 1px solid var(--accent); }
+.key .k-zero::before { background: var(--bad-soft); border: 1px solid var(--bad); }
+.key .k-none::before { background: var(--none); border: 1px solid var(--line); }
+code { font-family: var(--font-code); font-size: .8rem; background: var(--code-bg); padding: 1px 4px; border-radius: 3px; word-break: break-word; white-space: normal; }
+.mistakes { display: grid; gap: 10px; max-width: 90ch; }
+.mistake { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--bad); border-radius: 6px; padding: 10px 12px; display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 12px; }
+.mistake .count { font-size: 1.4rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.mistake .count span { display: block; font-size: .75rem; font-weight: 400; color: var(--muted); }
+.mistake p { margin: 0 0 4px; }
+.mistake .prob { font-size: .85rem; color: var(--muted); }
+#copyMsg { font-size: .9rem; color: var(--muted); }
+@media (max-width: 600px) { .bar { grid-template-columns: 100px minmax(0, 1fr) 56px; } .mistake { grid-template-columns: 54px minmax(0, 1fr); } }
+</style>
+
+<header class="topbar"><div class="topbar-inner">
+  <h1>Higher Web Class Results <small>Parsons problems · St Margaret's High School</small></h1>
+</div></header>
+
+<div class="wrap">
+  <section>
+    <h2>Pupils' results codes</h2>
+    <p class="lead">Paste the results codes from your pupils' Teams submissions. You can paste everything at once, with other text around the codes. If a pupil sends more than one code, only their latest one is used.</p>
+    <div class="panel">
+      <textarea id="codes" aria-label="Results codes" placeholder="HWP1.…"></textarea>
+      <div class="row">
+        <button class="btn primary" type="button" id="buildBtn">Build class results</button>
+        <button class="btn" type="button" id="clearBtn">Clear</button>
+        <label for="classFilter" id="filterLabel" hidden>Class <select id="classFilter"></select></label>
+        <span id="status"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="banner" id="exampleBanner">Example class: these are made-up pupils to show what the page does. Paste your pupils' codes above and press Build class results to replace them.</div>
+
+  <section>
+    <h2>Summary</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>By topic</h2>
+    <p class="lead">Class average for each topic, as a percentage of the marks available.</p>
+    <div class="bars" id="topics"></div>
+  </section>
+
+  <section>
+    <h2>By pupil</h2>
+    <p class="lead">Each pupil's best score on every problem, after hints. Hover over a problem number to see its title. Select a column heading to sort.</p>
+    <div class="table-wrap"><table class="grid" id="pupilTable"></table></div>
+    <div class="key"><span class="k-full">Full marks</span><span class="k-part">Part marks</span><span class="k-zero">0 marks</span><span class="k-none">Not finished</span></div>
+    <div class="row" style="margin-top:12px"><button class="btn" type="button" id="csvBtn">Copy table for Excel</button><span id="copyMsg"></span></div>
+  </section>
+
+  <section>
+    <h2>By problem</h2>
+    <div class="table-wrap"><table id="problemTable"></table></div>
+  </section>
+
+  <section>
+    <h2>Common mistakes</h2>
+    <p class="lead">The wrong lines that pupils put into an answer, most common first. Each pupil is counted once per line.</p>
+    <div class="mistakes" id="mistakes"></div>
+  </section>
+</div>
+
+<script>
+const META = [{"t":"HTML Layout Elements","g":"HTML and CSS","k":"Assignment","m":4,"d":[["\x3chead>","The head element holds information about the page, such as its title. The page banner goes in a header element."],["\x3cdiv id=\"nav\">","The navigation links should be held in the HTML5 nav element."],["\x3csection id=\"beginners\" id=\"openingTimes\">","An element can only have one id."]]},{"t":"Grouping Selectors","g":"HTML and CSS","k":"Question paper","m":3,"d":[["header, footer, h2, section {padding: 8px;}","The header had no padding in the original code, so this would change the page."],["header footer {background-color: darkgreen; color: white;}","With no comma this is a descendant selector. It would only style a footer contained in a header."],["header, footer, h2 {color: white;}","The h2 headings are dark green, not white."]]},{"t":"Descendant Selectors","g":"HTML and CSS","k":"Question paper","m":3,"d":[["#standard #premium {font-family: Georgia;}","With no comma this is a descendant selector. It would only style a premium section contained inside the standard section."],["footer, p {font-size: 12px;}","This is a grouping selector. It would make the footer and every paragraph on the page 12px."],["a {color: white;}","This would make every link white, including the Book now link."]]},{"t":"Margins and Padding","g":"HTML and CSS","k":"Question paper","m":2,"d":[["padding-top: 25px;","The 25 pixel gap is outside the box, so it is a margin, not padding."],["margin: 15px;","The 15 pixel space is inside the edge of the box, so it is padding, not a margin."]]},{"t":"Positioning Elements","g":"HTML and CSS","k":"Question paper","m":3,"d":[["float: left;","If #events was floated it would move up beside the other sections instead of starting below them."],["padding-left: 10px;","Padding adds space inside the section. The 10px gap is outside it, so it must be a margin."]]},{"t":"Horizontal Navigation Bar","g":"HTML and CSS","k":"Question paper","m":3,"d":[["nav:hover {background-color:yellow; color:navy;}","The hover must apply to the anchor elements. This would change the whole navigation bar."],["nav ul li {float:right; width:130px;}","Floating right would line the links up from the right-hand side, in reverse order."],["ul {list-style-type:none;}","This would remove the bullet points from every list on the page, not just the list in the nav."]]},{"t":"HTML Form (from a Wireframe)","g":"Forms","k":"Assignment","m":4,"d":[["\x3cinput type=\"textarea\" name=\"info\" rows=\"5\" maxlength=\"300\" required>\x3cbr>","textarea is its own element, with a closing \x3c/textarea> tag. It is not an input type."],["\x3cselect name=\"services\" size=\"4\" required>","Without multiple, only one service could be chosen."],["\x3cinput type=\"text\" name=\"dogName\" max=\"25\" required>\x3cbr>","max sets the top of a range for a number. The number of characters is limited with maxlength."],["\x3cinput type=\"radio\" name=\"dogSize\" value=\"medium\"> Medium","All the radio buttons in a group must have the same name, or more than one could be selected."]]},{"t":"HTML Form (Re-write a line)","g":"Forms","k":"Question paper","m":2,"d":[["minlength=\"1\"","minlength limits the number of characters typed. A range check on a number uses min."],["maxlength=\"12\"","maxlength limits the number of characters typed. A range check on a number uses max."],["type=\"text\"","The number of tickets is a number, so the input type stays as number."]]},{"t":"Rollover Image (inline JavaScript)","g":"JavaScript","k":"Question paper","m":2,"d":[["onclick=\"this.src='bookNowGlow.png'\"","onclick runs when the image is clicked, not when the cursor moves over it."],["onmouseout=\"this.src='bookNowGlow.png'\"","When the cursor moves away, the original image, bookNow.png, must be shown again."]]},{"t":"Rollover Image (functions)","g":"JavaScript","k":"Assignment","m":3,"d":[["function showBack(this) {","this is the actual parameter, used in the call: showBack(this). The formal parameter in the function needs its own name: thisGraphic."],["\x3cimg src=\"jacketFront.jpg\" onmouseover=\"showFront(this)\" onmouseout=\"showBack(this)\">","The calls are the wrong way round. The back would only show when the cursor moves away."],["thisGraphic.src=jacketBack.jpg;","The file name is text, so it must be in quotes: \"jacketBack.jpg\"."]]},{"t":"Resize (functions)","g":"JavaScript","k":"Question paper","m":4,"d":[["\x3cimg src=\"trailMap.jpg\" onclick=\"enlargeMap()\" onmouseout=\"shrinkMap()\">","The image has no id, so getElementById(\"trailMap\") would not find it."],["\x3cimg src=\"trailMap.jpg\" id=\"trailMap\" onclick=\"enlargeMap\" onmouseout=\"shrinkMap\">","A function call needs brackets: enlargeMap()."],["document.getElementById(\"trailMap\").style.width=600px;","The value must be in quotes: \"600px\"."]]},{"t":"Display Text (functions)","g":"JavaScript","k":"Assignment","m":4,"d":[["document.getElementById(bridgeTrip).style.display=\"block\";","The id is text, so it must be in quotes: getElementById(\"bridgeTrip\")."],["\x3cdiv id=\"bridgeTrip\" style=\"display:block\">","The details must be hidden when the page loads, so display must be none."],["\x3ch3 onclick=\"showDetails()\" onmouseout=\"hideDetails()\">Three Bridges Cruise\x3c/h3>","The details should appear when the cursor moves over the heading, so onmouseover is needed, not onclick."]]},{"t":"Display Sections (functions)","g":"JavaScript","k":"Assignment","m":4,"d":[["document.getElementById(soupText).style.display=\"block\";","The id is text, so it must be in quotes: getElementById(\"soupText\")."],["\x3cimg src=\"soup.jpg\" onclick=\"showSoup\">","A function call needs brackets: showSoup()."],["hideAllDishes;","A function call needs brackets: hideAllDishes();"]]}];
+const TOTAL = META.reduce((a, p) => a + p.m, 0);
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/[&\x3c>\x22]/g, c => ({ "&": "&amp;", "\x3c": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+/* ---------- Results codes (must match the pupil page) ---------- */
+function checkSum(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return (h % 1679616).toString(36).padStart(4, "0");
+}
+function encode(name, cls, time, rows) {
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify([1, name, cls, time, rows])))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return "HWP1." + b64 + "." + checkSum(b64);
+}
+function decode(code) {
+  const parts = code.split(".");
+  if (parts.length !== 3 || checkSum(parts[1]) !== parts[2]) return { error: "damaged" };
+  try {
+    let b = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (b.length % 4) b += "=";
+    const d = JSON.parse(decodeURIComponent(escape(atob(b))));
+    if (!Array.isArray(d) || d[0] !== 1 || !Array.isArray(d[4])) return { error: "damaged" };
+    if (d[4].length !== META.length) return { error: "version" };
+    return { name: String(d[1]).trim(), cls: String(d[2] || "").trim(), time: d[3], rows: d[4] };
+  } catch (e) { return { error: "damaged" }; }
+}
+
+/* ---------- Example class shown until real codes are pasted ---------- */
+function exampleCodes() {
+  let seed = 7;
+  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const names = ["Pupil A", "Pupil B", "Pupil C", "Pupil D", "Pupil E", "Pupil F", "Pupil G", "Pupil H"];
+  const t = Math.floor(Date.now() / 60000);
+  return names.map((n, k) => {
+    const skill = 0.45 + k * 0.07;
+    const rows = META.map((p, i) => {
+      if (rnd() > 0.55 + skill * 0.5) return [-1, 0, rnd() > 0.5 ? 1 : 0, 0];
+      const hints = rnd() < skill ? 0 : Math.ceil(rnd() * 3);
+      let bits = 0;
+      p.d.forEach((_, j) => { if (rnd() > skill + 0.25 + (i % 3) * 0.05) bits |= 1 << j; });
+      return [Math.max(0, p.m - hints), hints, 1 + Math.floor(rnd() * 3), bits];
+    });
+    return encode(n, "Example", t - k * 37, rows);
+  }).join("\n");
+}
+
+/* ---------- State ---------- */
+let pupils = [], usingExample = true, sortBy = "name", sortDir = 1;
+const STORE = "smhs-hwp-class-codes";
+
+function build(text, example) {
+  const found = text.match(/HWP1\.[A-Za-z0-9_-]+\.[a-z0-9]{4}/g) || [];
+  const latest = {};
+  let damaged = 0, version = 0;
+  found.forEach(code => {
+    const r = decode(code);
+    if (r.error === "damaged") { damaged++; return; }
+    if (r.error === "version") { version++; return; }
+    const key = (r.name + "|" + r.cls).toLowerCase();
+    if (!latest[key] || r.time > latest[key].time) latest[key] = r;
+  });
+  pupils = Object.values(latest).map(r => {
+    const got = r.rows.reduce((a, row) => a + Math.max(0, row[0]), 0);
+    const hints = r.rows.reduce((a, row) => a + (row[1] || 0), 0);
+    const done = r.rows.filter(row => row[0] >= 0).length;
+    return Object.assign(r, { got: got, hints: hints, done: done });
+  });
+  usingExample = !!example;
+  $("exampleBanner").hidden = !usingExample;
+
+  const classes = [...new Set(pupils.map(p => p.cls).filter(Boolean))].sort();
+  const sel = $("classFilter");
+  const keep = sel.value;
+  sel.innerHTML = '\x3coption value="">All classes\x3c/option>' + classes.map(c => '\x3coption>' + esc(c) + '\x3c/option>').join("");
+  sel.value = classes.includes(keep) ? keep : "";
+  $("filterLabel").hidden = classes.length < 2;
+
+  if (!example) {
+    const bits = [pupils.length + (pupils.length === 1 ? " pupil" : " pupils") + " loaded"];
+    if (found.length > pupils.length + damaged + version) bits.push((found.length - pupils.length - damaged - version) + " older codes replaced by a later one");
+    if (damaged) bits.push(damaged + (damaged === 1 ? " code could not be read (it may be incomplete)" : " codes could not be read (they may be incomplete)"));
+    if (version) bits.push(version + " from a different version of the problems");
+    $("status").textContent = bits.join(" · ");
+  } else {
+    $("status").textContent = "";
+  }
+  render();
+}
+
+function shown() {
+  const c = $("classFilter").value;
+  return c ? pupils.filter(p => p.cls === c) : pupils;
+}
+
+function cellClass(score, marks) {
+  if (score < 0) return "c-none";
+  if (score === marks) return "c-full";
+  if (score === 0) return "c-zero";
+  return "c-part";
+}
+
+function render() {
+  const list = shown();
+  const n = list.length;
+
+  /* summary cards */
+  const avgPct = n ? Math.round(100 * list.reduce((a, p) => a + p.got, 0) / (n * TOTAL)) : 0;
+  const avgDone = n ? (list.reduce((a, p) => a + p.done, 0) / n).toFixed(1) : "0";
+  const avgHints = n ? (list.reduce((a, p) => a + p.hints, 0) / n).toFixed(1) : "0";
+  $("cards").innerHTML =
+    '\x3cdiv class="card">\x3cb>' + n + '\x3c/b>\x3cspan>pupils\x3c/span>\x3c/div>' +
+    '\x3cdiv class="card">\x3cb>' + avgPct + '%\x3c/b>\x3cspan>class average\x3c/span>\x3c/div>' +
+    '\x3cdiv class="card">\x3cb>' + avgDone + ' / ' + META.length + '\x3c/b>\x3cspan>problems finished per pupil\x3c/span>\x3c/div>' +
+    '\x3cdiv class="card">\x3cb>' + avgHints + '\x3c/b>\x3cspan>hints per pupil\x3c/span>\x3c/div>';
+
+  /* topics */
+  const groups = [];
+  META.forEach((p, i) => {
+    let g = groups.find(x => x.name === p.g);
+    if (!g) { g = { name: p.g, idx: [] }; groups.push(g); }
+    g.idx.push(i);
+  });
+  $("topics").innerHTML = groups.map(g => {
+    const avail = g.idx.reduce((a, i) => a + META[i].m, 0) * n;
+    const got = list.reduce((a, p) => a + g.idx.reduce((b, i) => b + Math.max(0, p.rows[i][0]), 0), 0);
+    const pct = avail ? Math.round(100 * got / avail) : 0;
+    return '\x3cdiv class="bar">\x3cspan>' + esc(g.name) + '\x3c/span>\x3cdiv class="track">\x3cdiv class="fill" style="width:' + pct + '%">\x3c/div>\x3c/div>\x3cspan class="num">' + pct + '%\x3c/span>\x3c/div>';
+  }).join("");
+
+  /* pupil grid */
+  const sorted = list.slice().sort((a, b) => {
+    let d;
+    if (sortBy === "name") d = a.name.localeCompare(b.name);
+    else if (sortBy === "total") d = a.got - b.got;
+    else if (sortBy === "hints") d = a.hints - b.hints;
+    else d = (a.rows[sortBy][0]) - (b.rows[sortBy][0]);
+    return d * sortDir || a.name.localeCompare(b.name);
+  });
+  let t = '\x3cthead>\x3ctr>\x3cth class="sticky">\x3cbutton type="button" data-sort="name">Pupil\x3c/button>\x3c/th>\x3cth>Class\x3c/th>';
+  META.forEach((p, i) => { t += '\x3cth class="cell" title="' + esc((i + 1) + '. ' + p.t + ' (' + p.m + ' marks)') + '">\x3cbutton type="button" data-sort="' + i + '">' + (i + 1) + '\x3c/button>\x3c/th>'; });
+  t += '\x3cth class="n">\x3cbutton type="button" data-sort="total">Total\x3c/button>\x3c/th>\x3cth class="n">%\x3c/th>\x3cth class="n">\x3cbutton type="button" data-sort="hints">Hints\x3c/button>\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
+  sorted.forEach(p => {
+    t += '\x3ctr>\x3ctd class="sticky">' + esc(p.name) + '\x3c/td>\x3ctd>' + esc(p.cls) + '\x3c/td>';
+    p.rows.forEach((row, i) => {
+      const s = row[0];
+      t += '\x3ctd class="cell ' + cellClass(s, META[i].m) + '" title="' + esc(META[i].t + ': ' + (s < 0 ? 'not finished' : s + ' / ' + META[i].m) + (row[1] ? ', ' + row[1] + ' hints' : '')) + '">' + (s < 0 ? '–' : s) + '\x3c/td>';
+    });
+    t += '\x3ctd class="n">\x3cb>' + p.got + '\x3c/b> / ' + TOTAL + '\x3c/td>\x3ctd class="n">' + Math.round(100 * p.got / TOTAL) + '%\x3c/td>\x3ctd class="n">' + p.hints + '\x3c/td>\x3c/tr>';
+  });
+  if (!n) t += '\x3ctr>\x3ctd colspan="' + (META.length + 5) + '">No pupils to show.\x3c/td>\x3c/tr>';
+  t += '\x3c/tbody>';
+  $("pupilTable").innerHTML = t;
+  $("pupilTable").querySelectorAll("[data-sort]").forEach(b => b.addEventListener("click", () => {
+    const key = b.dataset.sort === "name" || b.dataset.sort === "total" || b.dataset.sort === "hints" ? b.dataset.sort : parseInt(b.dataset.sort, 10);
+    if (sortBy === key) sortDir = -sortDir; else { sortBy = key; sortDir = key === "name" ? 1 : -1; }
+    render();
+  }));
+
+  /* problem table */
+  let pt = '\x3cthead>\x3ctr>\x3cth class="n">#\x3c/th>\x3cth>Problem\x3c/th>\x3cth>Topic\x3c/th>\x3cth>Style\x3c/th>\x3cth class="n">Average\x3c/th>\x3cth class="n">Full marks\x3c/th>\x3cth class="n">Not finished\x3c/th>\x3cth class="n">Hints per pupil\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
+  META.forEach((p, i) => {
+    const sc = list.map(x => x.rows[i]);
+    const avg = n ? sc.reduce((a, r) => a + Math.max(0, r[0]), 0) / n : 0;
+    const full = sc.filter(r => r[0] === p.m).length;
+    const none = sc.filter(r => r[0] < 0).length;
+    const hints = n ? sc.reduce((a, r) => a + (r[1] || 0), 0) / n : 0;
+    pt += '\x3ctr>\x3ctd class="n">' + (i + 1) + '\x3c/td>\x3ctd class="wrapc">' + esc(p.t) + '\x3c/td>\x3ctd>' + esc(p.g) + '\x3c/td>\x3ctd>' + esc(p.k) + '\x3c/td>' +
+      '\x3ctd class="n">' + avg.toFixed(1) + ' / ' + p.m + '\x3c/td>\x3ctd class="n">' + full + ' of ' + n + '\x3c/td>\x3ctd class="n">' + none + ' of ' + n + '\x3c/td>\x3ctd class="n">' + hints.toFixed(1) + '\x3c/td>\x3c/tr>';
+  });
+  $("problemTable").innerHTML = pt + '\x3c/tbody>';
+
+  /* common mistakes */
+  const counts = [];
+  META.forEach((p, i) => p.d.forEach((d, j) => {
+    const c = list.filter(x => (x.rows[i][3] >> j) & 1).length;
+    if (c) counts.push({ c: c, i: i, d: d });
+  }));
+  counts.sort((a, b) => b.c - a.c || a.i - b.i);
+  $("mistakes").innerHTML = counts.length ? counts.slice(0, 12).map(m =>
+    '\x3cdiv class="mistake">\x3cdiv class="count">' + m.c + '\x3cspan>of ' + n + ' pupils\x3c/span>\x3c/div>\x3cdiv>' +
+    '\x3cp class="prob">' + (m.i + 1) + '. ' + esc(META[m.i].t) + '\x3c/p>\x3cp>\x3ccode>' + esc(m.d[0]) + '\x3c/code>\x3c/p>\x3cp>' + esc(m.d[1]) + '\x3c/p>\x3c/div>\x3c/div>'
+  ).join("") : '\x3cp class="lead">No wrong lines have been placed in an answer yet.\x3c/p>';
+}
+
+/* ---------- Controls ---------- */
+$("buildBtn").addEventListener("click", () => {
+  const text = $("codes").value;
+  try { localStorage.setItem(STORE, text); } catch (e) {}
+  if (!/HWP1\./.test(text)) { $("status").textContent = "No results codes found. Each code starts with HWP1."; return; }
+  build(text, false);
+});
+$("clearBtn").addEventListener("click", () => {
+  $("codes").value = "";
+  try { localStorage.removeItem(STORE); } catch (e) {}
+  build(exampleCodes(), true);
+  $("status").textContent = "Cleared.";
+});
+$("classFilter").addEventListener("change", render);
+$("csvBtn").addEventListener("click", () => {
+  const head = ["Pupil", "Class"].concat(META.map((p, i) => (i + 1) + ". " + p.t + " (/" + p.m + ")"), ["Total (/" + TOTAL + ")", "%", "Hints"]);
+  const rows = shown().map(p => [p.name, p.cls].concat(p.rows.map(r => r[0] < 0 ? "" : r[0]), [p.got, Math.round(100 * p.got / TOTAL), p.hints]));
+  const tsv = [head].concat(rows).map(r => r.map(v => String(v).replace(/\t|\n/g, " ")).join("\t")).join("\n");
+  const msg = $("copyMsg");
+  const fallback = () => {
+    let ta = document.getElementById("csvBox");
+    if (!ta) { ta = document.createElement("textarea"); ta.id = "csvBox"; ta.readOnly = true; msg.parentNode.after(ta); }
+    ta.value = tsv; ta.focus(); ta.select();
+    msg.textContent = "Press Ctrl + C to copy, then paste into Excel.";
+  };
+  try { navigator.clipboard.writeText(tsv).then(() => { msg.textContent = "Copied. Paste into Excel."; }, fallback); } catch (e) { fallback(); }
+});
+
+/* ---------- Start ---------- */
+let saved = "";
+try { saved = localStorage.getItem(STORE) || ""; } catch (e) {}
+if (/HWP1\./.test(saved)) { $("codes").value = saved; build(saved, false); }
+else build(exampleCodes(), true);
+</script>
