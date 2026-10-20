@@ -74,6 +74,10 @@ td.wrapc { white-space: normal; min-width: 160px; }
 .c-zero { background: var(--bad-soft); color: var(--bad); }
 .c-none { background: var(--none); color: var(--muted); font-weight: 400 !important; }
 .grid td.sticky, .grid th.sticky { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 0 0 12px; }
+.seg button { font: inherit; font-size: .9rem; padding: 7px 14px; border: 0; background: var(--surface); color: var(--fg); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.seg button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 .key { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); margin-top: 8px; }
 .key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .key .k-full::before { background: var(--good-soft); border: 1px solid var(--good); }
@@ -125,9 +129,10 @@ code { font-family: var(--font-code); font-size: .8rem; background: var(--code-b
 
   <section>
     <h2>By pupil</h2>
-    <p class="lead">Each pupil's best score on every problem, after hints. Hover over a problem number to see its title. Select a column heading to sort.</p>
+    <p class="lead" id="gridLead"></p>
+    <div class="seg" role="group" aria-label="Scores to show"><button type="button" id="viewBest" aria-pressed="true">Best score</button><button type="button" id="viewFirst" aria-pressed="false">First check</button></div>
     <div class="table-wrap"><table class="grid" id="pupilTable"></table></div>
-    <div class="key"><span class="k-full">Full marks</span><span class="k-part">Part marks</span><span class="k-zero">0 marks</span><span class="k-none">Not finished</span></div>
+    <div class="key"><span class="k-full">Full marks</span><span class="k-part">Part marks</span><span class="k-zero">0 marks</span><span class="k-none" id="noneKey">Not finished</span></div>
     <div class="row" style="margin-top:12px"><button class="btn" type="button" id="csvBtn">Copy table for Excel</button><span id="copyMsg"></span></div>
   </section>
 
@@ -168,7 +173,8 @@ function decode(code) {
     const d = JSON.parse(decodeURIComponent(escape(atob(b))));
     if (!Array.isArray(d) || d[0] !== 1 || !Array.isArray(d[4])) return { error: "damaged" };
     if (d[4].length !== META.length) return { error: "version" };
-    return { name: String(d[1]).trim(), cls: String(d[2] || "").trim(), time: d[3], rows: d[4] };
+    const rows = d[4].map(r => [r[0], r[1] || 0, r[2] || 0, r[3] || 0, r.length > 4 ? r[4] : -1]);
+    return { name: String(d[1]).trim().replace(/\s+/g, " "), cls: String(d[2] || "").trim().toUpperCase(), time: d[3], rows: rows };
   } catch (e) { return { error: "damaged" }; }
 }
 
@@ -185,14 +191,18 @@ function exampleCodes() {
       const hints = rnd() < skill ? 0 : Math.ceil(rnd() * 3);
       let bits = 0;
       p.d.forEach((_, j) => { if (rnd() > skill + 0.25 + (i % 3) * 0.05) bits |= 1 << j; });
-      return [Math.max(0, p.m - hints), hints, 1 + Math.floor(rnd() * 3), bits];
+      const checks = 1 + Math.floor(rnd() * 3);
+      const first = checks === 1 && !hints ? p.m : Math.floor(rnd() * p.m);
+      return [Math.max(0, p.m - hints), hints, checks, bits, first];
     });
     return encode(n, "Example", t - k * 37, rows);
   }).join("\n");
 }
 
 /* ---------- State ---------- */
-let pupils = [], usingExample = true, sortBy = "name", sortDir = 1;
+let pupils = [], usingExample = true, sortBy = "name", sortDir = 1, view = "best";
+/* the score shown in the grid: best score (row[0]) or first-check score (row[4]) */
+const val = row => view === "first" ? (row[4] >= 0 ? row[4] : -1) : row[0];
 const STORE = "smhs-hwp-class-codes";
 
 function build(text, example) {
@@ -210,7 +220,9 @@ function build(text, example) {
     const got = r.rows.reduce((a, row) => a + Math.max(0, row[0]), 0);
     const hints = r.rows.reduce((a, row) => a + (row[1] || 0), 0);
     const done = r.rows.filter(row => row[0] >= 0).length;
-    return Object.assign(r, { got: got, hints: hints, done: done });
+    const checks = r.rows.reduce((a, row) => a + (row[2] || 0), 0);
+    const first = r.rows.reduce((a, row) => a + Math.max(0, row[4]), 0);
+    return Object.assign(r, { got: got, hints: hints, done: done, checks: checks, first: first });
   });
   usingExample = !!example;
   $("exampleBanner").hidden = !usingExample;
@@ -254,11 +266,15 @@ function render() {
   const avgPct = n ? Math.round(100 * list.reduce((a, p) => a + p.got, 0) / (n * TOTAL)) : 0;
   const avgDone = n ? (list.reduce((a, p) => a + p.done, 0) / n).toFixed(1) : "0";
   const avgHints = n ? (list.reduce((a, p) => a + p.hints, 0) / n).toFixed(1) : "0";
+  const firstPct = n ? Math.round(100 * list.reduce((a, p) => a + p.first, 0) / (n * TOTAL)) : 0;
+  const avgChecks = n ? (list.reduce((a, p) => a + p.checks, 0) / n).toFixed(1) : "0";
   $("cards").innerHTML =
     '\x3cdiv class="card">\x3cb>' + n + '\x3c/b>\x3cspan>pupils\x3c/span>\x3c/div>' +
-    '\x3cdiv class="card">\x3cb>' + avgPct + '%\x3c/b>\x3cspan>class average\x3c/span>\x3c/div>' +
+    '\x3cdiv class="card">\x3cb>' + avgPct + '%\x3c/b>\x3cspan>class average (best score)\x3c/span>\x3c/div>' +
+    '\x3cdiv class="card">\x3cb>' + firstPct + '%\x3c/b>\x3cspan>class average (first check)\x3c/span>\x3c/div>' +
     '\x3cdiv class="card">\x3cb>' + avgDone + ' / ' + META.length + '\x3c/b>\x3cspan>problems finished per pupil\x3c/span>\x3c/div>' +
-    '\x3cdiv class="card">\x3cb>' + avgHints + '\x3c/b>\x3cspan>hints per pupil\x3c/span>\x3c/div>';
+    '\x3cdiv class="card">\x3cb>' + avgHints + '\x3c/b>\x3cspan>hints per pupil\x3c/span>\x3c/div>' +
+    '\x3cdiv class="card">\x3cb>' + avgChecks + '\x3c/b>\x3cspan>checks per pupil\x3c/span>\x3c/div>';
 
   /* topics */
   const groups = [];
@@ -269,50 +285,60 @@ function render() {
   });
   $("topics").innerHTML = groups.map(g => {
     const avail = g.idx.reduce((a, i) => a + META[i].m, 0) * n;
-    const got = list.reduce((a, p) => a + g.idx.reduce((b, i) => b + Math.max(0, p.rows[i][0]), 0), 0);
+    const got = list.reduce((a, p) => a + g.idx.reduce((b, i) => b + Math.max(0, val(p.rows[i])), 0), 0);
     const pct = avail ? Math.round(100 * got / avail) : 0;
     return '\x3cdiv class="bar">\x3cspan>' + esc(g.name) + '\x3c/span>\x3cdiv class="track">\x3cdiv class="fill" style="width:' + pct + '%">\x3c/div>\x3c/div>\x3cspan class="num">' + pct + '%\x3c/span>\x3c/div>';
   }).join("");
 
   /* pupil grid */
+  $("gridLead").textContent = view === "first"
+    ? "Each pupil's first-check score: the marks their answer earned the first time they pressed Check answer, less any hints taken before it. Hover over a problem number to see its title. Select a column heading to sort."
+    : "Each pupil's best score on every problem, after hints. Hover over a problem number to see its title. Select a column heading to sort.";
+  $("noneKey").textContent = view === "first" ? "Not checked yet (? = checked before first-check scores were recorded)" : "Not finished";
+  const tot = p => view === "first" ? p.first : p.got;
   const sorted = list.slice().sort((a, b) => {
     let d;
     if (sortBy === "name") d = a.name.localeCompare(b.name);
-    else if (sortBy === "total") d = a.got - b.got;
+    else if (sortBy === "total") d = tot(a) - tot(b);
     else if (sortBy === "hints") d = a.hints - b.hints;
-    else d = (a.rows[sortBy][0]) - (b.rows[sortBy][0]);
+    else if (sortBy === "checks") d = a.checks - b.checks;
+    else d = val(a.rows[sortBy]) - val(b.rows[sortBy]);
     return d * sortDir || a.name.localeCompare(b.name);
   });
   let t = '\x3cthead>\x3ctr>\x3cth class="sticky">\x3cbutton type="button" data-sort="name">Pupil\x3c/button>\x3c/th>\x3cth>Class\x3c/th>';
   META.forEach((p, i) => { t += '\x3cth class="cell" title="' + esc((i + 1) + '. ' + p.t + ' (' + p.m + ' marks)') + '">\x3cbutton type="button" data-sort="' + i + '">' + (i + 1) + '\x3c/button>\x3c/th>'; });
-  t += '\x3cth class="n">\x3cbutton type="button" data-sort="total">Total\x3c/button>\x3c/th>\x3cth class="n">%\x3c/th>\x3cth class="n">\x3cbutton type="button" data-sort="hints">Hints\x3c/button>\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
+  t += '\x3cth class="n">\x3cbutton type="button" data-sort="total">Total\x3c/button>\x3c/th>\x3cth class="n">%\x3c/th>\x3cth class="n">\x3cbutton type="button" data-sort="hints">Hints\x3c/button>\x3c/th>\x3cth class="n">\x3cbutton type="button" data-sort="checks">Checks\x3c/button>\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
   sorted.forEach(p => {
     t += '\x3ctr>\x3ctd class="sticky">' + esc(p.name) + '\x3c/td>\x3ctd>' + esc(p.cls) + '\x3c/td>';
     p.rows.forEach((row, i) => {
-      const s = row[0];
-      t += '\x3ctd class="cell ' + cellClass(s, META[i].m) + '" title="' + esc(META[i].t + ': ' + (s < 0 ? 'not finished' : s + ' / ' + META[i].m) + (row[1] ? ', ' + row[1] + ' hints' : '')) + '">' + (s < 0 ? '–' : s) + '\x3c/td>';
+      const s = val(row);
+      const unknown = view === "first" && s < 0 && row[2] > 0;
+      const tip = META[i].t + ': ' + (unknown ? 'first check not recorded' : s < 0 ? (view === "first" ? 'not checked yet' : 'not finished') : s + ' / ' + META[i].m) +
+        (view === "first" && row[0] >= 0 ? ', best ' + row[0] : '') + (row[1] ? ', ' + row[1] + ' hints' : '') + (row[2] ? ', ' + row[2] + ' checks' : '');
+      t += '\x3ctd class="cell ' + cellClass(s, META[i].m) + '" title="' + esc(tip) + '">' + (unknown ? '?' : s < 0 ? '–' : s) + '\x3c/td>';
     });
-    t += '\x3ctd class="n">\x3cb>' + p.got + '\x3c/b> / ' + TOTAL + '\x3c/td>\x3ctd class="n">' + Math.round(100 * p.got / TOTAL) + '%\x3c/td>\x3ctd class="n">' + p.hints + '\x3c/td>\x3c/tr>';
+    t += '\x3ctd class="n">\x3cb>' + tot(p) + '\x3c/b> / ' + TOTAL + '\x3c/td>\x3ctd class="n">' + Math.round(100 * tot(p) / TOTAL) + '%\x3c/td>\x3ctd class="n">' + p.hints + '\x3c/td>\x3ctd class="n">' + p.checks + '\x3c/td>\x3c/tr>';
   });
-  if (!n) t += '\x3ctr>\x3ctd colspan="' + (META.length + 5) + '">No pupils to show.\x3c/td>\x3c/tr>';
+  if (!n) t += '\x3ctr>\x3ctd colspan="' + (META.length + 6) + '">No pupils to show.\x3c/td>\x3c/tr>';
   t += '\x3c/tbody>';
   $("pupilTable").innerHTML = t;
   $("pupilTable").querySelectorAll("[data-sort]").forEach(b => b.addEventListener("click", () => {
-    const key = b.dataset.sort === "name" || b.dataset.sort === "total" || b.dataset.sort === "hints" ? b.dataset.sort : parseInt(b.dataset.sort, 10);
+    const key = ["name", "total", "hints", "checks"].includes(b.dataset.sort) ? b.dataset.sort : parseInt(b.dataset.sort, 10);
     if (sortBy === key) sortDir = -sortDir; else { sortBy = key; sortDir = key === "name" ? 1 : -1; }
     render();
   }));
 
   /* problem table */
-  let pt = '\x3cthead>\x3ctr>\x3cth class="n">#\x3c/th>\x3cth>Problem\x3c/th>\x3cth>Topic\x3c/th>\x3cth>Style\x3c/th>\x3cth class="n">Average\x3c/th>\x3cth class="n">Full marks\x3c/th>\x3cth class="n">Not finished\x3c/th>\x3cth class="n">Hints per pupil\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
+  let pt = '\x3cthead>\x3ctr>\x3cth class="n">#\x3c/th>\x3cth>Problem\x3c/th>\x3cth>Topic\x3c/th>\x3cth>Style\x3c/th>\x3cth class="n">Average (best)\x3c/th>\x3cth class="n">Average (first check)\x3c/th>\x3cth class="n">Full marks\x3c/th>\x3cth class="n">Not finished\x3c/th>\x3cth class="n">Hints per pupil\x3c/th>\x3c/tr>\x3c/thead>\x3ctbody>';
   META.forEach((p, i) => {
     const sc = list.map(x => x.rows[i]);
     const avg = n ? sc.reduce((a, r) => a + Math.max(0, r[0]), 0) / n : 0;
+    const favg = n ? sc.reduce((a, r) => a + Math.max(0, r[4]), 0) / n : 0;
     const full = sc.filter(r => r[0] === p.m).length;
     const none = sc.filter(r => r[0] < 0).length;
     const hints = n ? sc.reduce((a, r) => a + (r[1] || 0), 0) / n : 0;
     pt += '\x3ctr>\x3ctd class="n">' + (i + 1) + '\x3c/td>\x3ctd class="wrapc">' + esc(p.t) + '\x3c/td>\x3ctd>' + esc(p.g) + '\x3c/td>\x3ctd>' + esc(p.k) + '\x3c/td>' +
-      '\x3ctd class="n">' + avg.toFixed(1) + ' / ' + p.m + '\x3c/td>\x3ctd class="n">' + full + ' of ' + n + '\x3c/td>\x3ctd class="n">' + none + ' of ' + n + '\x3c/td>\x3ctd class="n">' + hints.toFixed(1) + '\x3c/td>\x3c/tr>';
+      '\x3ctd class="n">' + avg.toFixed(1) + ' / ' + p.m + '\x3c/td>\x3ctd class="n">' + favg.toFixed(1) + ' / ' + p.m + '\x3c/td>\x3ctd class="n">' + full + ' of ' + n + '\x3c/td>\x3ctd class="n">' + none + ' of ' + n + '\x3c/td>\x3ctd class="n">' + hints.toFixed(1) + '\x3c/td>\x3c/tr>';
   });
   $("problemTable").innerHTML = pt + '\x3c/tbody>';
 
@@ -343,9 +369,15 @@ $("clearBtn").addEventListener("click", () => {
   $("status").textContent = "Cleared.";
 });
 $("classFilter").addEventListener("change", render);
+["best", "first"].forEach(v => $(v === "best" ? "viewBest" : "viewFirst").addEventListener("click", () => {
+  view = v;
+  $("viewBest").setAttribute("aria-pressed", v === "best");
+  $("viewFirst").setAttribute("aria-pressed", v === "first");
+  render();
+}));
 $("csvBtn").addEventListener("click", () => {
-  const head = ["Pupil", "Class"].concat(META.map((p, i) => (i + 1) + ". " + p.t + " (/" + p.m + ")"), ["Total (/" + TOTAL + ")", "%", "Hints"]);
-  const rows = shown().map(p => [p.name, p.cls].concat(p.rows.map(r => r[0] < 0 ? "" : r[0]), [p.got, Math.round(100 * p.got / TOTAL), p.hints]));
+  const head = ["Pupil", "Class"].concat(META.map((p, i) => (i + 1) + ". " + p.t + " (/" + p.m + ")"), ["Best total (/" + TOTAL + ")", "Best %", "First-check total (/" + TOTAL + ")", "First-check %", "Hints", "Checks"]);
+  const rows = shown().map(p => [p.name, p.cls].concat(p.rows.map(r => r[0] < 0 ? "" : r[0]), [p.got, Math.round(100 * p.got / TOTAL), p.first, Math.round(100 * p.first / TOTAL), p.hints, p.checks]));
   const tsv = [head].concat(rows).map(r => r.map(v => String(v).replace(/\t|\n/g, " ")).join("\t")).join("\n");
   const msg = $("copyMsg");
   const fallback = () => {
